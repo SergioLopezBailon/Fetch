@@ -1,35 +1,52 @@
-window.addEventListener('load',()=>{
+window.addEventListener('load', () => {
     let long;
     let lat;
     let temperatureDescription = document.querySelector('.temperature-description');
     let temperatureDegree = document.querySelector('.temperature-degree');
     let locationTimezone = document.querySelector('.location-timezone');
+    let temperatureSection = document.querySelector('.temperature');
+    const temperatureSpan = document.querySelector('.temperature span');
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(position => {
+            long = position.coords.longitude;
+            lat = position.coords.latitude;
 
-    if(navigator.geolocation){
-        navigator.geolocation.getCurrentPosition(position =>{
-            long=position.coords.longitude;
-            lat=position.coords.latitude;
-
-            const proxy='https://cors-anywhere.herokuapp.com/';
-            const api=`${proxy}https://api.darksky.net/forecast/c934ddd5ad2b595e92eb48b5fe9d6910/${lat},${long}`;
+            const proxy = 'https://cors-anywhere.herokuapp.com/';
+            const api = `${proxy}https://api.darksky.net/forecast/c934ddd5ad2b595e92eb48b5fe9d6910/${lat},${long}`;
             fetch(api)
-            .then(response => {
-                return response.json();
-            })
-                .then(data=>{
+                .then(response => {
+                    return response.json();
+                })
+                .then(data => {
                     console.log(data);
-                    const {temperature, summary, icon } = data.currently;
+                    const { temperature, summary, icon } = data.currently;
                     //Sett DOM Elements from the API
                     temperatureDegree.textContent = temperature;
                     temperatureDescription.textContent = summary;
                     locationTimezone.textContent = data.timezone;
 
+                    //Formula para celsius
+                    let celsius = (temperature - 32) * (5/9);
+
+                    //Set icon
+                    setIcons(icon, document.querySelector('.icon'));
+
+                    //Cambia la temperatura entre Celsius/Farenheit
+                    temperatureSection.addEventListener("click", () => {
+                        if (temperatureSpan.textContent === "F") {
+                            temperatureSpan.textContent = "C";
+                            temperatureDegree.textContent = Math.floor(celsius);
+                        } else {
+                            temperatureSpan.textContent = "F";
+                            temperatureDegree.textContent = temperature;
+                        }
+                    })
                 })
         });
     }
 
-    function setIcons(icon, iconID){
-        const skycons = new skycons({color:"white"});
+    function setIcons(icon, iconID) {
+        const skycons = new Skycons({ color: "white" });
         const currentIcon = icon.replace(/-/g, "_").toUpperCase();
         skycons.play();
         return skycons.set(iconID, Skycons[currentIcon]);
